@@ -1,4 +1,5 @@
-./target/
-./tomcat.9090/
-./.idea/
+target/
+tomcat.9090/
+.idea/
+bysj-back-end.iml
 
