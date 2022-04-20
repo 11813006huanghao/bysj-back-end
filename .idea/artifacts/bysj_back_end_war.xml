@@ -1,0 +1,16 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="bysj-back-end:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <exploded>false</exploded>
+        <module>bysj-back-end</module>
+        <packaging>war</packaging>
+        <unpackNestedArchives>false</unpackNestedArchives>
+      </options>
+    </properties>
+    <root id="archive" name="bysj-back-end.war">
+      <element id="artifact" artifact-name="bysj-back-end:war exploded" />
+    </root>
+  </artifact>
+</component>
