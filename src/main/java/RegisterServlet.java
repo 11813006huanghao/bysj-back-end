@@ -158,6 +158,7 @@ public class RegisterServlet extends HttpServlet {
             System.out.println(e);
             return 11;
         }
+        q.closeDbConnection();
         return 9;
     }
 
@@ -198,6 +199,7 @@ public class RegisterServlet extends HttpServlet {
         String sqlStr="insert into user values (null,'"+generatedUid+"','"+userName+"','"+phone+"','"+password+"')";
         q.updateDbTable(sqlStr);
         if(q.rows<=0) return 11;
+        q.closeDbConnection();
         return 0;
     }
 
@@ -210,6 +212,7 @@ public class RegisterServlet extends HttpServlet {
         String sqlStr="update user set password='"+password+"' where phone='"+phone+"'";
         q.updateDbTable(sqlStr);
         if(q.rows<=0) return 11;
+        q.closeDbConnection();
         return 10;
     }
 }

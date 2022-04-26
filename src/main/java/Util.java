@@ -1,12 +1,11 @@
-import com.alibaba.fastjson.JSONObject;
-
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.sql.*;
+import java.util.Random;
 
 public class Util {
     static String dbUrl="jdbc:mysql://116.205.171.68:3306/hh_gamer";
@@ -48,5 +47,14 @@ public class Util {
         cookie.setMaxAge(maxAge);// 单位是秒
         //cookie.setSecure(true); //如果访问的是https网页需要设置这一步
         return cookie;
+    }
+
+    public static String getGeneratedId(int length){
+        String result="";
+        Random random=new Random();
+        for(int i=0;i<length;i++){
+            result+= random.nextInt(10);
+        }
+        return  result;
     }
 }

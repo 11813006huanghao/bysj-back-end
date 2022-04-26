@@ -7,9 +7,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.sql.*;
 
 @WebServlet(urlPatterns = "/login")
 public class LoginServlet extends HttpServlet {
@@ -20,9 +18,12 @@ public class LoginServlet extends HttpServlet {
         JSONObject jsonObj=new JSONObject();
         jsonObj.put("error",1);
         /**
-         * 0，登录成功
+         * 0，登录页点击登录成功
          * 1，用户不存在或者密码错误
-         * 2，登录状态过期
+         * 2，cookie过期
+         * 3，uid过期，如果用户在同一浏览器页面A登录A账号，然后在页面B退出并登录B账号，再返回A页面，此时会发生A页面uid和cookie不一致
+         * 4,cookie和uid匹配正常
+         * 5，用户在cookie有效期内重新打开页面
          * 11，服务器操作数据库错误
          */
         JSONObject reqPayload= JSON.parseObject( Util.parsePostPayload(req));
@@ -32,7 +33,7 @@ public class LoginServlet extends HttpServlet {
         /**
          * operType，操作类型
          * 1，用户在登录页面点击登录
-         * 2，路由跳转前发起请求
+         * 2，检测cookie和uid是否一致的请求
          */
         switch (operType){
             case 1:
@@ -42,6 +43,7 @@ public class LoginServlet extends HttpServlet {
                     if(q.rs.next()) {
                         jsonObj.put("error", 0);
                         String uid=q.rs.getString("uid");
+                        jsonObj.put("uid",uid);
                         Cookie cookie=Util.setCookie("uid",uid,"/",48*3600);
                         rsp.addCookie(cookie);
                     }
@@ -53,12 +55,17 @@ public class LoginServlet extends HttpServlet {
                 break;
             case 2:
                 Cookie[] cookies=req.getCookies();
-                if(cookies!=null){
-                    jsonObj.put("error",0);
+                String uid=reqPayload.getString("uid");
+                if(cookies==null) jsonObj.put("error",2);
+                else if(uid.equals("")) {
+                    jsonObj.put("error",5);
                     jsonObj.put("uid",cookies[0].getValue());
-                }else jsonObj.put("error",2);
+                }
+                else if(!uid.equals(cookies[0].getValue())){
+                    jsonObj.put("error",3);
+                    jsonObj.put("uid",cookies[0].getValue());
+                }else jsonObj.put("error",4);
                 break;
-
         }
 
         rsp.setContentType("application/json");

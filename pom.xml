@@ -36,6 +36,11 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.41</version>
         </dependency>
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>1.4</version>
+        </dependency>
     </dependencies>
 
     <build>

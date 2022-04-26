@@ -10,6 +10,10 @@ public class MysqlQuery {
     public ResultSet rs;
     public int rows=-1;
 
+    public MysqlQuery(){
+        System.out.println("记得关闭数据库连接");
+    }
+
     public void selectFromDb(String sqlStr){
         if(!init()) return;
         try {
