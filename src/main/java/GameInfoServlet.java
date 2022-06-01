@@ -75,7 +75,7 @@ public class GameInfoServlet extends HttpServlet {
                     JSONArray userUploadGameJsonArr=new JSONArray();
                     JSONObject additionalObj=new JSONObject();
                     additionalObj.put("total",0);
-                    rspObj.put("error",getUserUploadGame(uid,page,userUploadGameJsonArr,additionalObj));
+                    rspObj.put("error",getUserUploadGame(reqPayload,userUploadGameJsonArr,additionalObj));
                     rspObj.put("userUploadGameList",userUploadGameJsonArr);
                     rspObj.put("total",additionalObj.getInteger("total"));
                     break;
@@ -84,13 +84,15 @@ public class GameInfoServlet extends HttpServlet {
                     JSONArray userStarGameJsonArr=new JSONArray();
                     additionalObj=new JSONObject();
                     additionalObj.put("total",0);
-                    rspObj.put("error",getUserStarGame(uid,page,userStarGameJsonArr,additionalObj));
+                    rspObj.put("error",getUserStarGame(reqPayload,userStarGameJsonArr,additionalObj));
                     rspObj.put("userStarGameList",userStarGameJsonArr);
                     rspObj.put("total",additionalObj.getInteger("total"));
                     break;
                 case 5:
+                    MysqlQuery q=new MysqlQuery();
                     JSONObject gameObj=new JSONObject();
-                    rspObj.put("error",getGameInfo(gid,gameObj));
+                    int result=q.getGameBaseInfo(gid,gameObj);
+                    rspObj.put("error",result==0? 6:-6);
                     rspObj.put("gameObj",gameObj);
                     break;
             }
@@ -183,12 +185,16 @@ public class GameInfoServlet extends HttpServlet {
         return result;
     }
 
-    public int  getUserUploadGame(String uid,int page,JSONArray userUploadGameJsonArr,JSONObject additionalObj){
+    public int  getUserUploadGame(JSONObject reqPayload,JSONArray userUploadGameJsonArr,JSONObject additionalObj){
         int result=-4;
         MysqlQuery q=new MysqlQuery();
+        int page=reqPayload.getInteger("page");
+        String filterGameName=reqPayload.getString("filterGameName");
+        if(filterGameName==null) filterGameName="";
+        String uid=reqPayload.getString("uid");
         String limitStart=""+(page-1)*10;
         String sqlStr="select gid,gameCoverUrl,gameName,gameDesc,gameRate,gameRaterNum from game where gameUploaderUid='"
-                +uid+"' order by gameUploadTimeStamp DESC limit "+limitStart+",10";
+                +uid+"' and gameName like '%"+filterGameName+"%' order by gameUploadTimeStamp DESC limit "+limitStart+",10";
         q.selectFromDb(sqlStr);
         try{
             while(q.rs.next()){
@@ -214,12 +220,16 @@ public class GameInfoServlet extends HttpServlet {
         return result;
     }
 
-    public int  getUserStarGame(String uid,int page,JSONArray userStarGameJsonArr,JSONObject additionalObj){
+    public int  getUserStarGame(JSONObject reqPayload,JSONArray userStarGameJsonArr,JSONObject additionalObj){
         int result=-5;
         MysqlQuery q=new MysqlQuery();
+        int page=reqPayload.getInteger("page");
+        String filterGameName=reqPayload.getString("filterGameName");
+        if(filterGameName==null) filterGameName="";
+        String uid=reqPayload.getString("uid");
         String limitStart=""+(page-1)*10;
         String sqlStr="select * from game where gid in (select gid from follow_game where followerUid='"
-                +uid+"') order by gameUploadTimeStamp DESC limit "+limitStart+",10";
+                +uid+"') and gameName like '%"+filterGameName+"%' order by gameUploadTimeStamp DESC limit "+limitStart+",10";
         q.selectFromDb(sqlStr);
         try{
             while(q.rs.next()){
@@ -237,46 +247,6 @@ public class GameInfoServlet extends HttpServlet {
             q.rs.next();
             additionalObj.put("total",q.rs.getInt("count(*)"));
             result=5;
-        }catch (Exception e){
-            e.printStackTrace();
-            result=11;
-        }
-        q.closeDbConnection();
-        return result;
-    }
-
-    public int getGameInfo(String gid,JSONObject gameObj){
-        int result=-6;
-        /**
-         * -6，获取游戏基本信息失败
-         * 6，获取成功
-         */
-        MysqlQuery q=new MysqlQuery();
-        String sqlStr="select * from game where gid='"+gid+"'";
-        q.selectFromDb(sqlStr);
-        try{
-            if(q.rs.next()){
-                gameObj.put("gameName",q.rs.getString("gameName"));
-                gameObj.put("gameRate",q.rs.getString("gameRate"));
-                gameObj.put("gameRaterNum",q.rs.getInt("gameRaterNum"));
-                String[] gameLabelList=q.rs.getString("gameLabel").split(",");
-                JSONArray tmpArr=new JSONArray();
-                if(!gameLabelList[0].equals("")) {
-                    for (String item : gameLabelList) {
-                        tmpArr.add(item);
-                    }
-                }
-                gameObj.put("gameLabelList",tmpArr);
-                String gameUploaderUid=q.rs.getString("gameUploaderUid");
-                gameObj.put("gameDesc",q.rs.getString("gameDesc"));
-                gameObj.put("gameUploadTimeStamp",q.rs.getString("gameUploadTimeStamp"));
-                sqlStr="select userName from user where uid='"+gameUploaderUid+"'";
-                q.selectFromDb(sqlStr);
-                q.rs.next();
-                gameObj.put("gameUploaderUid",gameUploaderUid);
-                gameObj.put("gameUploaderUserName",q.rs.getString("userName"));
-                result=6;
-            }
         }catch (Exception e){
             e.printStackTrace();
             result=11;

@@ -17,7 +17,7 @@ public class RegisterServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         Util.allowCrossOrigin(rsp);
-        rsp.setContentType("application/json");
+        rsp.setContentType("application/json;charset=utf-8");
         JSONObject rspObj=new JSONObject();
         rspObj.put("error",0);
         /**
@@ -196,7 +196,7 @@ public class RegisterServlet extends HttpServlet {
             generatedUid+= random.nextInt(10);
         }
         MysqlQuery q=new MysqlQuery();
-        String sqlStr="insert into user values (null,'"+generatedUid+"','"+userName+"','"+phone+"','"+password+"')";
+        String sqlStr="insert into user values (null,'"+generatedUid+"','"+userName+"','"+phone+"','"+password+"',null,null,null,null)";
         q.updateDbTable(sqlStr);
         if(q.rows<=0) return 11;
         q.closeDbConnection();

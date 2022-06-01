@@ -30,6 +30,10 @@ public class Util {
     }
 
     public static void allowCrossOrigin(HttpServletResponse response){
+        /**
+         * 本地开发 ： http://localhost:8080
+         * 正式上线：  http://www.hhlearn.cn:8080
+         */
         response.setHeader("Access-Control-Allow-Origin", "http://localhost:8080");
         response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Allow-Methods", "*");

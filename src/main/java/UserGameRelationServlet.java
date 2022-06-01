@@ -86,7 +86,7 @@ public class UserGameRelationServlet extends HttpServlet {
         }
 
 
-        rsp.setContentType("application/json");
+        rsp.setContentType("application/json;charset=utf-8");
         PrintWriter pw=rsp.getWriter();
         pw.write(rspObj.toJSONString());
         pw.flush();

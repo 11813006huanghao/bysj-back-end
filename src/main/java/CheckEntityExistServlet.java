@@ -8,23 +8,30 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-@WebServlet(urlPatterns = "/deleteGame")
-public class DeleteGameServlet extends HttpServlet {
+@WebServlet(urlPatterns = "/checkEntityExist")
+public class CheckEntityExistServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         Util.allowCrossOrigin(rsp);
         JSONObject rspObj=new JSONObject();
         /**
-         * 返回体
-         * 1，删除成功
-         * -1，删除失败
+         * 1，实体存在
+         * -1，实习不存在
          */
+
         JSONObject reqPayload= JSON.parseObject( Util.parsePostPayload(req));
-        String gid=reqPayload.getString("gid");
+        String entity=reqPayload.getString("entity");
+        String id=reqPayload.getString("id");
         MysqlQuery q=new MysqlQuery();
-        String sqlStr="delete from game where gid='"+gid+"'";
-        q.updateDbTable(sqlStr);
-        rspObj.put("error",q.rows>0? 1:-1);
+        String sqlStr="";
+        if("user".equals(entity)) sqlStr="select * from user where uid='" + id + "'";
+        else if("game".equals(entity)) sqlStr="select * from game where gid='"+id+"'";
+        q.selectFromDb(sqlStr);
+        try {
+            rspObj.put("error",q.rs.next()?1:-1);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         q.closeDbConnection();
         rsp.setContentType("application/json;charset=utf-8");
         PrintWriter pw=rsp.getWriter();

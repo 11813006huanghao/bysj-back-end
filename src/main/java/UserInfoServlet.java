@@ -1,6 +1,5 @@
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-
 import javax.servlet.ServletContext;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -42,24 +41,23 @@ public class UserInfoServlet extends HttpServlet {
         int operType=reqPayload.getInteger("operType");
         /**
          * operType，请求类型
-         * 1，获取用户个人基本信息（名称、性别、个性签名、手机号）
-         * 2，获取用户头像
+         * 1，获取用户个人基本信息（名称、性别、个性签名、手机号、头像）
+         * 2，单独获取用户头像
          * 3，设置用户个人基本信息
          * 4，设置用户头像
          */
         switch (operType){
             case 1:
-                JSONObject userBaseInfoObj=getUserBaseInfo(uid);
-                if(userBaseInfoObj==null) rspObj.put("error",-1);
-                else {
-                    rspObj.put("error",1);
-                    rspObj.put("userBaseInfo",userBaseInfoObj);
-                }
+                MysqlQuery q=new MysqlQuery();
+                JSONObject userBaseInfoObj=new JSONObject();
+                int result=q.getUserBaseInfo(uid,userBaseInfoObj);
+                rspObj.put("error",result==0? 1:-1);
+                rspObj.put("userBaseInfo",userBaseInfoObj);
                 break;
             case 2:
                 String avatarUrl=getUserAvatarUrl(uid);
                 rspObj.put("error",2);
-                rspObj.put("avatarUrl",avatarUrl);
+                rspObj.put("avatarUrl",avatarUrl); //如果avatarUrl是null，那么前端收到的body里面没有avatarUrl这个字段
                 break;
             case 3:
                 rspObj.put("error",setUserBaseInfo(uid,birthday,userName,gender,signature));
@@ -77,35 +75,16 @@ public class UserInfoServlet extends HttpServlet {
     }
 
     public String getUserAvatarUrl(String uid){
-        String result="public/avatar-default.png";
+        String result=null;
         MysqlQuery q=new MysqlQuery();
         String sqlStr="select avatarUrl from user where uid='"+uid+"'";
         q.selectFromDb(sqlStr);
         try {
             if (q.rs.next()) {
                 String avatarUrl = q.rs.getString("avatarUrl");
-                if (avatarUrl != null) result = "user/"+uid+"/"+avatarUrl;
-            }
+                if (avatarUrl != null) result = avatarUrl;
+            }else result=null;
         }catch (Exception e) {System.out.println(e);}
-        q.closeDbConnection();
-        return  result;
-    }
-
-    public JSONObject getUserBaseInfo(String uid){
-        JSONObject result=null;
-        MysqlQuery q=new MysqlQuery();
-        String sqlStr="select * from user where uid='"+uid+"'";
-        q.selectFromDb(sqlStr);
-        try{
-            q.rs.next();
-            result=new JSONObject();
-            result.put("userName",q.rs.getString("userName"));
-            result.put("phone",q.rs.getString("phone"));
-            result.put("gender",q.rs.getString("gender"));
-            result.put("signature",q.rs.getString("signature"));
-            result.put("birthday",q.rs.getString("birthday"));
-
-        }catch (Exception e){ e.printStackTrace();}
         q.closeDbConnection();
         return  result;
     }
@@ -113,7 +92,8 @@ public class UserInfoServlet extends HttpServlet {
     public int setUserBaseInfo(String uid,String birthday,String userName,String gender,String signature){
         int result=-3;
         MysqlQuery q=new MysqlQuery();
-        String sqlStr="update user set birthday='"+birthday+"', userName='"+userName+"',gender='"+gender+"',signature='"+signature+"' where uid='"+uid+"'";
+        String sqlStr="update user set birthday='"+birthday+"', userName='"+userName+"',gender='"
+                +gender+"',signature='"+signature+"' where uid='"+uid+"'";
         q.updateDbTable(sqlStr);
         if(q.rows>0) result=3;
         q.closeDbConnection();

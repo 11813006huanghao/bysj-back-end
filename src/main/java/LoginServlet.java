@@ -20,10 +20,10 @@ public class LoginServlet extends HttpServlet {
         /**
          * 0，登录页点击登录成功
          * 1，用户不存在或者密码错误
-         * 2，cookie过期
+         * 2，没有cookie或者cookie过期
          * 3，uid过期，如果用户在同一浏览器页面A登录A账号，然后在页面B退出并登录B账号，再返回A页面，此时会发生A页面uid和cookie不一致
-         * 4,cookie和uid匹配正常
-         * 5，用户在cookie有效期内重新打开页面
+         * 4,cookie有且和uid匹配正常
+         * 5，用户在cookie有效期内重新打开页面，有cookie但是uid为空
          * 11，服务器操作数据库错误
          */
         JSONObject reqPayload= JSON.parseObject( Util.parsePostPayload(req));
@@ -68,7 +68,7 @@ public class LoginServlet extends HttpServlet {
                 break;
         }
 
-        rsp.setContentType("application/json");
+        rsp.setContentType("application/json;charset=utf-8");
         PrintWriter pw=rsp.getWriter();
         pw.write(jsonObj.toJSONString());
         pw.flush();
